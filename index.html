@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title></title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin:0; width:100%; height:100%; overflow:hidden; }
+  body {
+    display:grid; place-items:center; background:#080808; color:#f5f5f5;
+    font-family:Arial, sans-serif;
+  }
+  #setup {
+    width:min(440px, calc(100vw - 32px)); padding:28px;
+    background:#171717; border:1px solid #383838; border-radius:16px;
+    box-shadow:0 20px 70px #0009;
+  }
+  #setup h1 { margin:0 0 10px; font-size:22px; }
+  #setup p { color:#bbb; line-height:1.5; margin:0 0 22px; }
+  label { display:flex; align-items:center; gap:12px; margin:18px 0 22px; cursor:pointer; }
+  input[type=checkbox] { width:21px; height:21px; accent-color:#e53935; }
+  button {
+    border:0; border-radius:9px; padding:13px 18px; width:100%;
+    color:white; background:#d92d2d; font-size:16px; font-weight:700; cursor:pointer;
+  }
+  button:disabled { opacity:.45; cursor:not-allowed; }
+  #hint { min-height:20px; color:#ffcf70; font-size:13px; margin-top:14px; }
+  #show { display:none; position:fixed; inset:0; background:#000; }
+  #player { position:absolute; inset:0; width:100%; height:100%; border:0; }
+  #revealText {
+    position:absolute; z-index:2; top:12px; left:0; right:0; text-align:center;
+    font-size:clamp(22px, 5vw, 54px); font-weight:900;
+    color:white; text-shadow:0 3px 12px black; pointer-events:none;
+  }
+  #exitHint {
+    position:absolute; z-index:3; bottom:12px; left:0; right:0;
+    text-align:center; color:#ddd; font-size:12px; text-shadow:0 2px 5px #000;
+    pointer-events:none;
+  }
+</style>
+</head>
+<body>
+  <section id="setup">
+    <h1>Teste de som</h1>
+    <p>Antes de continuar, confirme que o volume do dispositivo está no máximo.</p>
+    <label>
+      <input id="volumeCheck" type="checkbox">
+      <span>Coloquei o som no máximo</span>
+    </label>
+    <button id="continueBtn" disabled>Continuar</button>
+    <div id="hint" role="status"></div>
+  </section>
+
+  <main id="show">
+    <iframe id="player" title="Vídeo musical"
+      allow="autoplay; encrypted-media; picture-in-picture"
+      referrerpolicy="strict-origin-when-cross-origin"
+      allowfullscreen></iframe>
+    <div id="exitHint">Pressione Esc para sair da tela cheia</div>
+  </main>
+
+<script>
+  const checkbox = document.getElementById('volumeCheck');
+  const button = document.getElementById('continueBtn');
+  const hint = document.getElementById('hint');
+  const show = document.getElementById('show');
+  const player = document.getElementById('player');
+  let revealed = false;
+
+  checkbox.addEventListener('change', () => {
+    button.disabled = !checkbox.checked;
+    hint.textContent = '';
+  });
+
+  async function enterTest() {
+    if (!checkbox.checked) return;
+    hint.textContent = 'Solicitando tela cheia…';
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+      }
+    } catch (err) {
+      hint.textContent = 'A tela cheia foi bloqueada. Clique em Continuar novamente e permita.';
+      return;
+    }
+    if (document.fullscreenElement) {
+      revealRickroll();
+    } else {
+      hint.textContent = 'Ative a tela cheia para continuar.';
+    }
+  }
+
+  function revealRickroll() {
+    if (revealed || !document.fullscreenElement) return;
+    revealed = true;
+    document.getElementById('setup').style.display = 'none';
+    show.style.display = 'block';
+    player.src = 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?autoplay=1&playsinline=1&rel=0';
+  }
+
+  button.addEventListener('click', enterTest);
+  document.addEventListener('fullscreenchange', () => {
+    if (document.fullscreenElement && checkbox.checked) revealRickroll();
+    if (!document.fullscreenElement && revealed) {
+      // O vídeo continua visível; a pessoa pode sair da tela cheia normalmente.
+    }
+  });
+</script>
+</body>
+</html>
